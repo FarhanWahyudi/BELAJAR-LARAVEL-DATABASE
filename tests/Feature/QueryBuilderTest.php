@@ -17,7 +17,7 @@ class QueryBuilderTest extends TestCase
         DB::delete('DELETE FROM categories');
     }
 
-    public function testInsertCategories()
+    public function InsertCategories()
     {
         DB::table('categories')->insert([
             'id' => 'SMARTPHONE',
@@ -70,7 +70,7 @@ class QueryBuilderTest extends TestCase
 
     public function testWhere()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         $collection = DB::table('categories')->where(function (Builder $builder) {
             $builder->where('id', '=', 'SMARTPHONE');
@@ -85,7 +85,7 @@ class QueryBuilderTest extends TestCase
 
     public function testWhereBetween()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         $collection = DB::table('categories')->whereBetween('created_at', ['2020-09-10 10:10:10', '2020-11-10 10:10:10'])->get();
 
@@ -97,7 +97,7 @@ class QueryBuilderTest extends TestCase
 
     public function testWhereIn()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         $collection = DB::table('categories')->whereIn('id', ['SMARTPHONE', 'LAPTOP'])->get();
 
@@ -109,7 +109,7 @@ class QueryBuilderTest extends TestCase
 
     public function testWhereNull()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         $collection = DB::table('categories')->whereNull('description')->get();
 
@@ -121,7 +121,7 @@ class QueryBuilderTest extends TestCase
 
     public function testWhereDate()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         $collection = DB::table('categories')->whereDate('created_at', '2020-10-10')->get();
 
@@ -133,7 +133,7 @@ class QueryBuilderTest extends TestCase
 
     public function testUpdate()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         DB::table('categories')->where('id', '=', 'SMARTPHONE')->update([
             'name' => 'handphone'
@@ -175,12 +175,45 @@ class QueryBuilderTest extends TestCase
 
     public function testDelete()
     {
-        $this->testInsertCategories();
+        $this->InsertCategories();
 
         DB::table('categories')->where('id', '=', 'SMARTPHONE')->delete();
 
         $collection = DB::table('categories')->where('id', '=', 'SMARTPHONE')->get();
         $this->assertCount(0, $collection);
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+    }
+
+    public function insertProducts()
+    {
+        $this->InsertCategories();
+
+        DB::table('products')->insert([
+            'id' => '1',
+            'name' => 'iphone 14 pro max',
+            'category_id' => 'SMARTPHONE',
+            'price' => 20000000
+        ]);
+        DB::table('products')->insert([
+            'id' => '2',
+            'name' => 'samsung galaxy s21 ultra',
+            'category_id' => 'SMARTPHONE',
+            'price' => 18000000
+        ]);
+    }
+
+    public function testJoin()
+    {
+        $this->insertProducts();
+
+        $collection = DB::table('products')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->select('products.id', 'products.name', 'categories.name as category_name', 'products.price')
+            ->get();
+
+        $this->assertCount(2, $collection);
         $collection->each(function ($item) {
             Log::info(json_encode($item));
         });
