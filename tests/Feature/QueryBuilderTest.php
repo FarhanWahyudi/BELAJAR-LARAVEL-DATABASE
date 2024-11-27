@@ -14,6 +14,7 @@ class QueryBuilderTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+        DB::delete('DELETE FROM products');
         DB::delete('DELETE FROM categories');
     }
 
@@ -213,6 +214,17 @@ class QueryBuilderTest extends TestCase
             ->select('products.id', 'products.name', 'categories.name as category_name', 'products.price')
             ->get();
 
+        $this->assertCount(2, $collection);
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+    }
+
+    public function testOrdering()
+    {
+        $this->insertProducts();
+
+        $collection = DB::table('products')->orderBy('price', 'desc')->orderBy('name', 'asc')->get();
         $this->assertCount(2, $collection);
         $collection->each(function ($item) {
             Log::info(json_encode($item));
