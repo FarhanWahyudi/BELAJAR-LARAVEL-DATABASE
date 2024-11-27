@@ -42,6 +42,18 @@ class QueryBuilderTest extends TestCase
         ]);
     }
 
+    public function insertManyCategories()
+    {
+        for ($i = 0; $i < 100; $i++) {
+            DB::table('categories')->insert([
+                'id' => $i,
+                'name' => "$i",
+                'created_at' => '2020-10-10 10:10:10'
+            ]);
+        };
+
+    }
+
     public function testInsert()
     {
         DB::table('categories')->insert([
@@ -244,5 +256,20 @@ class QueryBuilderTest extends TestCase
         $collection->each(function ($item) {
             Log::info(json_encode($item));
         });
+    }
+
+    public function testChunk()
+    {
+        $this->insertManyCategories();
+
+        DB::table('categories')->orderBy('id')
+            ->chunk(10, function ($categories) {
+                $this->assertNotNull($categories);
+                Log::info('chunk start');
+                $categories->each(function ($category) {
+                    Log::info(json_encode($category));
+                });
+                Log::info('chunk end');
+            });
     }
 }
