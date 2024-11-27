@@ -284,4 +284,16 @@ class QueryBuilderTest extends TestCase
             Log::info(json_encode($category));
         });
     }
+
+    public function testCursor()
+    {
+        $this->insertManyCategories();
+
+        $collection = DB::table('categories')->orderBy('id')->cursor();
+        $this->assertNotNull($collection);
+
+        $collection->each(function ($category) {
+            Log::info(json_encode($category));
+        });
+    }
 }
