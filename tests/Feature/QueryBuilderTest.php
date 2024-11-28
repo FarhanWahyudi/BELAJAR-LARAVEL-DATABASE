@@ -217,6 +217,22 @@ class QueryBuilderTest extends TestCase
         ]);
     }
 
+    public function insertProductsFoods()
+    {
+        DB::table('products')->insert([
+            'id' => '3',
+            'name' => 'bakso',
+            'category_id' => 'FOOD',
+            'price' => 20000
+        ]);
+        DB::table('products')->insert([
+            'id' => '4',
+            'name' => 'mie ayam',
+            'category_id' => 'FOOD',
+            'price' => 20000
+        ]);
+    }
+
     public function testJoin()
     {
         $this->insertProducts();
@@ -331,5 +347,38 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals(2, $collection[0]->total_product);
         $this->assertEquals(18000000, $collection[0]->min_price);
         $this->assertEquals(20000000, $collection[0]->max_price);
+    }
+
+    public function testGroupBy()
+    {
+        $this->insertProducts();
+        $this->insertProductsFoods();
+
+        $collection = DB::table('products')
+            ->select('category_id', DB::raw('count(*) as total_product'))
+            ->groupBy('category_id')
+            ->orderBy('category_id', 'desc')
+            ->get();
+
+        $this->assertCount(2, $collection);
+        $this->assertEquals('SMARTPHONE', $collection[0]->category_id);
+        $this->assertEquals('FOOD', $collection[1]->category_id);
+        $this->assertEquals('2', $collection[0]->total_product);
+        $this->assertEquals('2', $collection[1]->total_product);
+    }
+
+    public function testGroupByHaving()
+    {
+        $this->insertProducts();
+        $this->insertProductsFoods();
+
+        $collection = DB::table('products')
+            ->select('category_id', DB::raw('count(*) as total_product'))
+            ->groupBy('category_id')
+            ->having(DB::raw('count(*)'), '>', 2)
+            ->orderBy('category_id', 'desc')
+            ->get();
+
+        $this->assertCount(0, $collection);;
     }
 }
